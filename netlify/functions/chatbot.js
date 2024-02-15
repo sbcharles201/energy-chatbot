@@ -1,16 +1,32 @@
 const https = require('https');
 
 exports.handler = async (event) => {
-    // Check and log the raw event body
+    console.log("Received event:", event);
+
+    // Handle OPTIONS request for CORS preflight
+    if (event.httpMethod === "OPTIONS") {
+        return {
+            statusCode: 200,
+            headers: {
+                "Access-Control-Allow-Origin": "https://sbcharles201.github.io",
+                "Access-Control-Allow-Headers": "Content-Type",
+                "Access-Control-Allow-Methods": "POST, OPTIONS",
+            },
+            body: "",
+        };
+    }
+
+    // Validate and parse request body
     if (!event.body) {
         console.error("No request body");
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "https://sbcharles201.github.io",
+            },
             body: JSON.stringify({ error: "No request body" }),
         };
     }
-
-    console.log("Received body:", event.body);
 
     let body;
     try {
@@ -19,12 +35,15 @@ exports.handler = async (event) => {
         console.error("Error parsing JSON:", error);
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Origin": "https://sbcharles201.github.io",
+            },
             body: JSON.stringify({ error: "Error parsing JSON input" }),
         };
     }
 
+    // Construct OpenAI API request
     const userQuestion = body.question;
-    
     const dataString = JSON.stringify({
         prompt: `Answer the following question about energy bills: ${userQuestion}`,
         temperature: 0.5,
@@ -46,6 +65,7 @@ exports.handler = async (event) => {
         }
     };
 
+    // Make API request and handle response
     return new Promise((resolve, reject) => {
         const req = https.request(options, (res) => {
             let response = '';
@@ -57,13 +77,19 @@ exports.handler = async (event) => {
                     const responseData = JSON.parse(response);
                     resolve({
                         statusCode: 200,
+                        headers: {
+                            "Access-Control-Allow-Origin": "https://sbcharles201.github.io",
+                        },
                         body: JSON.stringify({ answer: responseData.choices[0].text })
                     });
                 } catch (error) {
                     console.error("Error parsing OpenAI response:", error);
                     reject({
                         statusCode: 500,
-                        body: JSON.stringify({ error: "Error processing your request" })
+                        headers: {
+                            "Access-Control-Allow-Origin": "https://sbcharles201.github.io",
+                        },
+                        body: JSON.stringify({ error: "Failed to process the request" })
                     });
                 }
             });
@@ -71,9 +97,12 @@ exports.handler = async (event) => {
 
         req.on('error', (error) => {
             console.error("Request error:", error);
-            reject({ 
-                statusCode: 500, 
-                body: JSON.stringify({ error: error.message }) 
+            reject({
+                statusCode: 500,
+                headers: {
+                    "Access-Control-Allow-Origin": "https://sbcharles201.github.io",
+                },
+                body: JSON.stringify({ error: error.message })
             });
         });
 
