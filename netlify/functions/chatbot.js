@@ -1,7 +1,28 @@
 const https = require('https');
 
 exports.handler = async (event) => {
-    const body = JSON.parse(event.body);
+    // Check and log the raw event body
+    if (!event.body) {
+        console.error("No request body");
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "No request body" }),
+        };
+    }
+
+    console.log("Received body:", event.body);
+
+    let body;
+    try {
+        body = JSON.parse(event.body);
+    } catch (error) {
+        console.error("Error parsing JSON:", error);
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ error: "Error parsing JSON input" }),
+        };
+    }
+
     const userQuestion = body.question;
     
     const dataString = JSON.stringify({
@@ -32,16 +53,28 @@ exports.handler = async (event) => {
                 response += chunk;
             });
             res.on('end', () => {
-                const responseData = JSON.parse(response);
-                resolve({
-                    statusCode: 200,
-                    body: JSON.stringify({ answer: responseData.choices[0].text })
-                });
+                try {
+                    const responseData = JSON.parse(response);
+                    resolve({
+                        statusCode: 200,
+                        body: JSON.stringify({ answer: responseData.choices[0].text })
+                    });
+                } catch (error) {
+                    console.error("Error parsing OpenAI response:", error);
+                    reject({
+                        statusCode: 500,
+                        body: JSON.stringify({ error: "Error processing your request" })
+                    });
+                }
             });
         });
 
         req.on('error', (error) => {
-            reject({ statusCode: 500, body: JSON.stringify({ error: error.message }) });
+            console.error("Request error:", error);
+            reject({ 
+                statusCode: 500, 
+                body: JSON.stringify({ error: error.message }) 
+            });
         });
 
         req.write(dataString);
