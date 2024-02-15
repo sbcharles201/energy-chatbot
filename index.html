@@ -9,12 +9,33 @@
     <h1>Welcome to the Energy Bill Chatbot</h1>
     <p>This chatbot can help you with your queries about energy bills, using information exclusively from Vattenfall.</p>
     <div>
-    <h2>Ask me about your energy bill:</h2>
-    <input type="text" id="userInput" placeholder="Type your question here...">
-    <button onclick="submitQuestion()">Ask</button>
-</div>
-<div id="chatbotResponse">
-    <p>Responses will appear here...</p>
-</div>
+        <h2>Ask me about your energy bill:</h2>
+        <input type="text" id="userInput" placeholder="Type your question here...">
+        <button onclick="submitQuestion()">Ask</button>
+    </div>
+    <div id="chatbotResponse">
+        <p>Responses will appear here...</p>
+    </div>
+
+    <script>
+    function submitQuestion() {
+        const userInput = document.getElementById('userInput').value;
+        fetch('/.netlify/functions/chatbot', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: userInput }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('chatbotResponse').innerText = data.answer;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('chatbotResponse').innerText = 'Sorry, there was an error processing your request.';
+        });
+    }
+    </script>
 </body>
 </html>
