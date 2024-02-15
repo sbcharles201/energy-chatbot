@@ -20,7 +20,7 @@
     <script>
     function submitQuestion() {
         const userInput = document.getElementById('userInput').value;
-        fetch('/.netlify/functions/chatbot', {
+        fetch('https://fantastic-phoenix-011136.netlify.app/.netlify/functions/chatbot', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
