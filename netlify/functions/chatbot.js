@@ -47,7 +47,7 @@ exports.handler = async (event) => {
     const dataString = JSON.stringify({
         prompt: `Answer the following question about energy bills: ${userQuestion}`,
         temperature: 0.5,
-        max_tokens: 100,
+        max_tokens: 500,
         top_p: 1.0,
         frequency_penalty: 0.0,
         presence_penalty: 0.0,
